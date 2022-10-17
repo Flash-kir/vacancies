@@ -14,7 +14,7 @@ pip install -r requirements.txt
 ```bash
 cp example.env .env
 ```
-Для работы с сервисом `superjob.ru` зарегистрируйтесь на [сайте]('https://www.superjob.ru/') и получите секретный ключ для доступа к API, следуйте [инструкции](https://api.superjob.ru/#gettin). Полученный ключ запишите в файл `.env`.
+Для работы с сервисом `superjob.ru` зарегистрируйтесь на [сайте](https://www.superjob.ru/) и получите секретный ключ для доступа к API, следуйте [инструкции](https://api.superjob.ru/#gettin). Полученный ключ запишите в файл `.env`.
 
 ## vacancies.py
 
