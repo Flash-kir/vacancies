@@ -8,7 +8,7 @@ git clone git@github.com:Flash-kir/vacancies.git
 ```
 Установите необходимые библиотеки:
 ```bash
-pip install -r requirenments.txt
+pip install -r requirements.txt
 ```
 Для создания файла `.env` выполните команду:
 ```bash
