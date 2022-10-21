@@ -96,7 +96,7 @@ def get_sj_vacancies_content(sj_secret_key, town=4):
             more = vacancies['more']
         language_salaries[language]['vacancies_found'] = vacancies['total']
         language_salaries[language]['vacancies_processed'] = vacancies_count
-        if vacancies_count > 0:
+        if vacancies_count:
             average_salary = int(salary_sum / vacancies_count)
         else:
             average_salary = 0
@@ -124,7 +124,7 @@ def get_hh_vacancies_content(area='1'):
             last_page = page == vacancies['pages']
         language_salaries[language]['vacancies_found'] = vacancies['found']
         language_salaries[language]['vacancies_processed'] = vacancies_count
-        if vacancies_count > 0:
+        if vacancies_count:
             average_salary = int(salary_sum / vacancies_count)
         else:
             average_salary = 0
