@@ -49,15 +49,16 @@ def predict_hh_rub_salary(vacancie_salary):
     return predict_rub_salary(salary_from, salary_to)
 
 
-def get_sj_vacancies(language, page, town=4):
+def get_sj_vacancies(sj_secret_key, language, page, town=4):
     params = {
         'page': page,
         'keyword': language,
         'town': town,
-        'app_key': SUPERJOB_SECRET_KEY
+        'app_key': sj_secret_key
     }
     url = 'https://api.superjob.ru/2.0/vacancies/'
     response = requests.get(url, params=params)
+    response.raise_for_status()
     return response.json()
 
 
@@ -70,19 +71,20 @@ def get_hh_vacancies(text='', page=1, area='1'):
     }
     url = 'https://api.hh.ru/vacancies'
     response = requests.get(url, params=params)
+    response.raise_for_status()
     return response.json()
 
 
-def get_sj_vacancies_content(town=4):
-    languages_vacancies = {}
+def get_sj_vacancies_content(sj_secret_key, town=4):
+    language_salaries = {}
     for language in LANGUAGES:
         salary_sum = 0
         vacancies_count = 0
         page = 0
-        languages_vacancies[language] = {}
+        language_salaries[language] = {}
         more = True
         while more:
-            vacancies = get_sj_vacancies(language, page, town)
+            vacancies = get_sj_vacancies(sj_secret_key, language, page, town)
             if 'objects' in vacancies.keys():
                 for vacancie in vacancies['objects']:
                     salary = predict_sj_rub_salary(vacancie)
@@ -92,23 +94,23 @@ def get_sj_vacancies_content(town=4):
                         salary_sum += salary
             page += 1
             more = vacancies['more']
-        languages_vacancies[language]['vacancies_found'] = vacancies['total']
-        languages_vacancies[language]['vacancies_processed'] = vacancies_count
+        language_salaries[language]['vacancies_found'] = vacancies['total']
+        language_salaries[language]['vacancies_processed'] = vacancies_count
         if vacancies_count > 0:
             average_salary = int(salary_sum / vacancies_count)
         else:
             average_salary = 0
-        languages_vacancies[language]['average_salary'] = average_salary
-    return languages_vacancies
+        language_salaries[language]['average_salary'] = average_salary
+    return language_salaries
 
 
 def get_hh_vacancies_content(area='1'):
-    languages_vacancies = {}
+    language_salaries = {}
     for language in LANGUAGES:
         salary_sum = 0
         vacancies_count = 0
         page = 0
-        languages_vacancies[language] = {}
+        language_salaries[language] = {}
         last_page = False
         while not last_page:
             vacancies = get_hh_vacancies(language, page, area)
@@ -120,15 +122,18 @@ def get_hh_vacancies_content(area='1'):
                         salary_sum += salary
             page += 1
             last_page = page == vacancies['pages']
-        languages_vacancies[language]['vacancies_found'] = vacancies['found']
-        languages_vacancies[language]['vacancies_processed'] = vacancies_count
-        average_salary = int(salary_sum / vacancies_count)
-        languages_vacancies[language]['average_salary'] = average_salary
-    return languages_vacancies
+        language_salaries[language]['vacancies_found'] = vacancies['found']
+        language_salaries[language]['vacancies_processed'] = vacancies_count
+        if vacancies_count > 0:
+            average_salary = int(salary_sum / vacancies_count)
+        else:
+            average_salary = 0
+        language_salaries[language]['average_salary'] = average_salary
+    return language_salaries
 
 
 def print_vacancies_table(vacancies_content, title):
-    table_data = [
+    table_salary = [
         [
             'Язык программирования',
             'Вакансий найдено',
@@ -137,21 +142,24 @@ def print_vacancies_table(vacancies_content, title):
         ]
     ]
     for language in vacancies_content.keys():
-        language_salary_info = vacancies_content[language]
-        table_data.append(
+        language_salaries = vacancies_content[language]
+        table_salary.append(
             [
                 language,
-                language_salary_info['vacancies_found'],
-                language_salary_info['vacancies_processed'],
-                language_salary_info['average_salary']
+                language_salaries['vacancies_found'],
+                language_salaries['vacancies_processed'],
+                language_salaries['average_salary']
             ]
         )
-    table = AsciiTable(table_data, title)
+    table = AsciiTable(table_salary, title)
     print(table.table)
 
 
 if __name__ == '__main__':
     load_dotenv()
-    SUPERJOB_SECRET_KEY = os.environ.get('SUPERJOB_SECRET_KEY')
+    sj_secret_key = os.environ.get('SUPERJOB_SECRET_KEY')
     print_vacancies_table(get_hh_vacancies_content(), 'HeadHunter Moscow')
-    print_vacancies_table(get_sj_vacancies_content(), 'SuperJob Moscow')
+    print_vacancies_table(
+        get_sj_vacancies_content(sj_secret_key), 
+        'SuperJob Moscow'
+        )
