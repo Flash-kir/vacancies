@@ -24,9 +24,9 @@ def predict_rub_salary(salary_from, salary_to):
     salary = 0
     if isinstance(salary_from, int) & isinstance(salary_to, int):
         salary = (salary_from + salary_to) / 2
-    elif isinstance(salary_from, int):
+    elif salary_from:
         salary = salary_from * 1.2
-    elif isinstance(salary_to, int):
+    elif salary_to:
         salary = salary_to * 0.8
     else:
         return None
@@ -85,13 +85,13 @@ def get_sj_vacancies_content(sj_secret_key, town=4):
         more = True
         while more:
             vacancies = get_sj_vacancies(sj_secret_key, language, page, town)
-            if 'objects' in vacancies.keys():
-                for vacancie in vacancies['objects']:
-                    salary = predict_sj_rub_salary(vacancie)
-                    if isinstance(salary, int):
-                        if salary > 0:
-                            vacancies_count += 1
-                        salary_sum += salary
+            if 'objects' not in vacancies.keys():
+                continue
+            for vacancie in vacancies['objects']:
+                salary = predict_sj_rub_salary(vacancie)
+                if salary:
+                    vacancies_count += 1
+                    salary_sum += salary
             page += 1
             more = vacancies['more']
         language_salaries[language]['vacancies_found'] = vacancies['total']
@@ -114,12 +114,13 @@ def get_hh_vacancies_content(area='1'):
         last_page = False
         while not last_page:
             vacancies = get_hh_vacancies(language, page, area)
-            if 'items' in vacancies.keys():
-                for vacancie in vacancies['items']:
-                    salary = predict_hh_rub_salary(vacancie['salary'])
-                    if isinstance(salary, int):
-                        vacancies_count += 1
-                        salary_sum += salary
+            if 'items' not in vacancies.keys():
+                continue
+            for vacancie in vacancies['items']:
+                salary = predict_hh_rub_salary(vacancie['salary'])
+                if salary:
+                    vacancies_count += 1
+                    salary_sum += salary
             page += 1
             last_page = page == vacancies['pages']
         language_salaries[language]['vacancies_found'] = vacancies['found']
@@ -160,6 +161,6 @@ if __name__ == '__main__':
     sj_secret_key = os.environ.get('SUPERJOB_SECRET_KEY')
     print_vacancies_table(get_hh_vacancies_content(), 'HeadHunter Moscow')
     print_vacancies_table(
-        get_sj_vacancies_content(sj_secret_key), 
+        get_sj_vacancies_content(sj_secret_key),
         'SuperJob Moscow'
         )
